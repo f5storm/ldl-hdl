@@ -1,0 +1,1395 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diferenças: HDL, LDL e VLDL</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* == Novas Cores do Tema para Lipoproteínas == */
+            --hdl-color: #22c55e;      /* Verde para HDL (Bom) */
+            --ldl-color: #ef4444;      /* Vermelho para LDL (Ruim) */
+            --vldl-color: #f97316;     /* Laranja para VLDL (Precursor) */
+
+            /* Cores de Brilho/Destaque */
+            --hdl-glow: rgba(34, 197, 94, 0.2);
+            --ldl-glow: rgba(239, 68, 68, 0.2);
+            --vldl-glow: rgba(249, 115, 22, 0.2);
+            
+            /* Cores de Borda do Tema */
+            --hdl-border: rgba(34, 197, 94, 0.4);
+            --ldl-border: rgba(239, 68, 68, 0.4);
+            --vldl-border: rgba(249, 115, 22, 0.4);
+
+            /* Paleta de Tema Claro */
+            --bg-main: #ffffff; /* ALTERADO PARA BRANCO */
+            --text-primary: #1e293b;
+            --text-secondary: #475569;
+        }
+
+        html { scroll-behavior: smooth; }
+        body { 
+            font-family: 'Inter', sans-serif; 
+            color: var(--text-primary);
+            overflow-x: hidden;
+            background-color: var(--bg-main);
+            transition: background-color 0.5s ease-in-out; /* Para feedback do quiz */
+        }
+        
+        /* REMOVIDO: Flash de cor de fundo para o Quiz 
+        body.correct-bg { background-color: #dcfce7; }
+        body.incorrect-bg { background-color: #fee2e2; }
+        */
+
+        /* RESTAURADO: Formas de fundo animadas */
+        .background-container {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            overflow: hidden;
+            z-index: -2; /* Atrás do conteúdo */
+        }
+        .light-bubble {
+            position: absolute;
+            border-radius: 50%;
+            /* Filtro desfocado solicitado */
+            filter: blur(140px);
+            opacity: 0.15; /* Efeito "opaco" */
+            animation: moveBubble 35s infinite alternate;
+        }
+        /* Verde */
+        .light-bubble.b1 { width: 45vw; height: 45vw; top: 5%; left: -10%; background: var(--hdl-color); animation-duration: 40s; }
+        /* Vermelho */
+        .light-bubble.b2 { width: 45vw; height: 45vw; top: 40%; left: 70%; background: var(--ldl-color); animation-duration: 35s; }
+        /* Laranja/Amarelo (VLDL) */
+        .light-bubble.b3 { width: 50vw; height: 50vw; top: 60%; left: 10%; background: var(--vldl-color); animation-duration: 45s; }
+        
+        @keyframes moveBubble {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(15vw, -20vh) scale(1.2); }
+        }
+        
+        /* REMOVIDO: Brilhos de fundo dinâmicos 
+        .dynamic-bg-glow {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            width: 150vmax;
+            height: 150vmax;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            filter: blur(120px);
+            opacity: 0;
+            transition: opacity 1.5s ease-in-out;
+            z-index: -1;
+        }
+        #bg-hdl { background-color: var(--hdl-color); }
+        #bg-ldl { background-color: var(--ldl-color); }
+        */
+
+        .section-container {
+            width: 100%;
+            padding: 7rem 2rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            position: relative;
+            z-index: 1;
+        }
+        
+        #hero { 
+            min-height: 90vh; 
+            padding-top: 2rem; 
+            padding-bottom: 2rem;
+        }
+        #hero h1 { 
+            font-size: clamp(2.8rem, 7vw, 5rem); 
+            font-weight: 800; 
+            letter-spacing: -0.05em; 
+            text-shadow: 0 0 20px rgba(0,0,0,0.05);
+        }
+        #hero p { 
+            font-size: clamp(1.1rem, 2.5vw, 1.35rem); 
+            max-width: 650px; 
+            color: var(--text-secondary);
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .section-header-card {
+            position: relative;
+            background: rgba(255, 255, 255, 0.35);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 1.5rem;
+            padding: 2.5rem;
+            margin-bottom: 3rem;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 1200px;
+            width: 100%;
+            overflow: hidden;
+            z-index: 2;
+            opacity: 0;
+            transform: translateY(50px);
+            transition: opacity 0.5s ease-out, transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+        .section-header-card.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .section-header-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border-radius: inherit;
+            pointer-events: none;
+            box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.6);
+            z-index: 1;
+        }
+        .section-header-card > * {
+             position: relative;
+             z-index: 2;
+        }
+        .section-header-card .section-title {
+            margin-bottom: 1rem;
+        }
+        #hero .section-header-card { margin-bottom: 0; } 
+
+        .section-title { font-size: clamp(2.2rem, 5.5vw, 4rem); font-weight: 800; letter-spacing: -0.04em; color: var(--text-primary); position: relative; }
+        .section-subtitle { 
+            font-size: clamp(1rem, 2vw, 1.2rem); 
+            max-width: 700px; 
+            color: var(--text-secondary); 
+            margin-bottom: 0;
+            margin-left: auto; 
+            margin-right: auto; 
+        }
+
+        .topics-grid {
+            width: 100%;
+            max-width: 1200px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 1.5rem;
+            align-items: start;
+        }
+
+        .topic-card {
+            position: relative;
+            background: rgba(255, 255, 255, 0.35);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 1.5rem;
+            transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            opacity: 0;
+            transform: translateY(50px);
+            transition: opacity 0.5s ease-out, transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+        
+        .topic-card.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .topic-card:nth-child(1) { transition-delay: 0.05s; }
+        .topic-card:nth-child(2) { transition-delay: 0.1s; }
+        .topic-card:nth-child(3) { transition-delay: 0.15s; }
+        .topic-card:nth-child(4) { transition-delay: 0.2s; }
+
+        .topic-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border-radius: inherit;
+            pointer-events: none;
+            box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.6);
+            transition: box-shadow 0.4s ease;
+            z-index: 1;
+        }
+        
+        .topic-card:hover::before { 
+            box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.8);
+        }
+        
+        .topic-card > div {
+            position: relative;
+            z-index: 2;
+        }
+
+        .topic-card:hover { 
+            transform: translateY(-5px);
+            border-color: rgba(255, 255, 255, 0.3); 
+        }
+        
+        .topic-card .summary { 
+            color: var(--text-primary);
+            text-shadow: none;
+            font-size: 1.125rem; 
+            font-weight: 600; 
+            padding: 1.5rem; 
+            cursor: pointer; 
+            outline: none; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+        }
+        .topic-card .summary::after { 
+            content: '+'; 
+            font-size: 1.5rem; 
+            font-weight: 400; 
+            color: var(--text-secondary);
+            text-shadow: none;
+            transition: transform 0.3s ease-in-out; 
+        }
+        .topic-card.is-open > .summary::after { transform: rotate(45deg); }
+        .topic-card.is-open > .summary { 
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2); 
+        }
+        
+        .topic-content-wrapper {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease-in-out;
+        }
+        .topic-content { 
+            padding: 1.5rem; 
+            font-size: 0.95rem; 
+            color: var(--text-secondary);
+            text-shadow: none;
+        }
+        
+        /* Cores de Destaque por Seção */
+        #hdl-col .topic-card.is-open {
+            box-shadow: 0 8px 25px rgba(0,0,0,0.08), inset 0 0 0 2px var(--hdl-border);
+        }
+        #ldl-col .topic-card.is-open {
+            box-shadow: 0 8px 25px rgba(0,0,0,0.08), inset 0 0 0 2px var(--ldl-border);
+        }
+        #vldl-col .topic-card.is-open {
+            box-shadow: 0 8px 25px rgba(0,0,0,0.08), inset 0 0 0 2px var(--vldl-border);
+        }
+        
+        #hdl-col .topic-card.is-open:hover {
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1), inset 0 0 0 2px rgba(34, 197, 94, 0.6);
+        }
+        #ldl-col .topic-card.is-open:hover {
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1), inset 0 0 0 2px rgba(239, 68, 68, 0.6);
+        }
+        #vldl-col .topic-card.is-open:hover {
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1), inset 0 0 0 2px rgba(249, 115, 22, 0.6);
+        }
+        
+        /* Termos destacados */
+        .term { 
+            text-decoration: none; 
+            cursor: pointer; 
+            font-weight: 500;
+            padding: 4px 10px;
+            border-radius: 0.6rem;
+            transition: all 0.2s ease-in-out;
+            text-shadow: none;
+        }
+        #hdl-col .term { background-color: var(--hdl-glow); color: #15803d; }
+        #ldl-col .term { background-color: var(--ldl-glow); color: #b91c1c; }
+        #vldl-col .term { background-color: var(--vldl-glow); color: #c2410c; }
+        .term:hover { 
+            filter: brightness(1.15); 
+        }
+
+        /* == NOVO: Estilos do Modal == */
+        #modal-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-color: rgba(248, 250, 252, 0.5);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 1rem;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.4s ease, visibility 0s linear 0.4s;
+            z-index: 1000;
+        }
+        #modal-overlay.visible {
+            opacity: 1;
+            visibility: visible;
+            transition: opacity 0.4s ease;
+        }
+        
+        #modal-content {
+            background: rgba(255, 255, 255, 0.55); 
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: var(--text-primary);
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.15);
+            border-radius: 2rem;
+            position: relative;
+            width: 90%;
+            max-width: 500px;
+            transform: scale(0.95);
+            transition: transform 0.4s ease;
+            overflow: hidden; 
+        }
+        
+        #modal-content::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border-radius: inherit;
+            pointer-events: none;
+            box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.6);
+            z-index: 1;
+        }
+
+        #modal-overlay.visible #modal-content { 
+            transform: scale(1);
+        }
+        
+        #modal-content.theme-hdl-col { box-shadow: 0 25px 50px -12px rgba(0,0,0,0.15), inset 0 0 0 2px var(--hdl-border); }
+        #modal-content.theme-ldl-col { box-shadow: 0 25px 50px -12px rgba(0,0,0,0.15), inset 0 0 0 2px var(--ldl-border); }
+        #modal-content.theme-vldl-col { box-shadow: 0 25px 50px -12px rgba(0,0,0,0.15), inset 0 0 0 2px var(--vldl-border); }
+        
+        #modal-header, #modal-description {
+            position: relative;
+            z-index: 2;
+        }
+
+        #modal-header {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            background: transparent;
+            text-align: center;
+            padding: 1.5rem 3.5rem;
+        }
+        
+        #modal-title { 
+            font-size: 1.75rem; 
+            font-weight: 700; 
+            text-shadow: none;
+        }
+        #modal-header.theme-hdl-col #modal-title { color: var(--hdl-color); }
+        #modal-header.theme-ldl-col #modal-title { color: var(--ldl-color); }
+        #modal-header.theme-vldl-col #modal-title { color: var(--vldl-color); }
+        
+        #modal-description { font-size: 1.05rem; color: var(--text-secondary); line-height: 1.7; padding: 1.5rem 2rem 2rem 2rem; }
+        
+        #modal-image-container { /* Estilo mantido caso seja usado no futuro */
+            padding: 1.5rem;
+            display: flex;
+            justify-content: center;
+        }
+        #modal-image-container svg {
+            width: 100%;
+            max-width: 450px;
+            height: auto;
+            border-radius: 1rem;
+        }
+
+        #modal-close-btn {
+            position: absolute;
+            top: 1rem; right: 1rem;
+            background: rgba(0,0,0,0.05);
+            border: none;
+            border-radius: 50%;
+            width: 2.5rem; height: 2.5rem;
+            cursor: pointer; 
+            transition: background-color 0.2s ease, transform 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            z-index: 3;
+        }
+        #modal-close-btn:hover { background: rgba(0,0,0,0.1); transform: scale(1.1); }
+        /* == FIM: Estilos do Modal == */
+
+
+        .footer-signature { text-align: center; padding: 4rem 1rem; background-color: transparent; color: #94a3b8; }
+        ul { list-style-position: inside; padding-left: 0.5rem;}
+        li { margin-bottom: 0.5rem; }
+
+        /* == Estilos do Quiz (copiados do original) == */
+        #quiz-section {
+             background: rgba(255, 255, 255, 0.2);
+             backdrop-filter: blur(15px);
+             -webkit-backdrop-filter: blur(15px);
+             border-top: 1px solid rgba(255, 255, 255, 0.3);
+             padding-bottom: 4rem;
+        }
+
+        .quiz-container {
+            max-width: 800px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 2rem;
+            padding: 2.5rem;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            position: relative;
+        }
+        
+        #progress-bar-container {
+            width: 100%;
+            max-width: 800px;
+            background-color: rgba(255, 255, 255, 0.4);
+            border-radius: 9999px;
+            padding: 0.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+        #progress-bar-fill {
+            height: 1.5rem;
+            background: linear-gradient(90deg, #4ade80, #3b82f6);
+            border-radius: 9999px;
+            transition: width 0.5s ease-in-out;
+            text-align: center;
+            color: white;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.875rem;
+        }
+        #progress-label {
+            text-align: center;
+            margin-top: 0.75rem;
+            margin-bottom: 2rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+        
+        #question-counter-display {
+            position: absolute;
+            top: 2.5rem;
+            right: 2.5rem;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: white;
+            transition: all 0.3s ease;
+            background-color: #22c55e; /* Fixo como fácil */
+        }
+        
+        #timer-display {
+            position: absolute;
+            top: 2.5rem;
+            left: 2.5rem;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background-color: rgba(255,255,255,0.4);
+            border: 3px solid var(--text-secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+        }
+        #timer-display.warning {
+            border-color: #f59e0b;
+            color: #b45309;
+            transform: scale(1.1);
+        }
+        #timer-display.danger {
+            border-color: #ef4444;
+            color: #991b1b;
+            transform: scale(1.1);
+            animation: pulse 1s infinite;
+        }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.5); }
+            70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+        
+        #quiz-question {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 2rem;
+            padding: 0 96px; 
+            text-align: center;
+        }
+        
+        #quiz-options {
+            list-style: none;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .quiz-option {
+            background-color: rgba(255,255,255,0.7);
+            border: 1px solid rgba(0,0,0,0.05);
+            border-radius: 1rem;
+            padding: 1.25rem;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: transform 0.2s ease-out, box-shadow 0.2s ease-out, background-color 0.2s ease-out;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -2px rgba(0, 0, 0, 0.07);
+            will-change: transform, box-shadow;
+        }
+
+        .quiz-option:hover {
+            transform: translateY(-3px);
+            background-color: white;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .quiz-option.disabled { cursor: not-allowed; opacity: 0.7; }
+        .quiz-option.correct-answer {
+            border-color: #22c55e;
+            background-color: #f0fdf4;
+            color: #15803d;
+            font-weight: 600;
+        }
+        .quiz-option.incorrect-answer {
+            border-color: #ef4444;
+            background-color: #fef2f2;
+            color: #b91c1c;
+            font-weight: 600;
+        }
+        
+        #quiz-start-btn, #restart-quiz-btn {
+            background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            font-weight: 700;
+            padding: 1rem 2.5rem;
+            border-radius: 1rem;
+            font-size: 1.2rem;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        #quiz-start-btn { color: var(--text-primary); }
+        #quiz-start-btn:disabled { 
+            cursor: not-allowed; 
+            background: rgba(226, 232, 240, 0.5);
+            color: #94a3b8;
+        }
+
+        #restart-quiz-btn {
+            color: var(--hdl-color); /* Usando a cor "boa" */
+            margin-top: 2rem;
+        }
+        
+        #reset-progress-btn {
+            color: #475569; /* slate-600 */
+            background: none;
+            font-size: 0.9rem;
+            font-weight: 600;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+        }
+
+        #quiz-start-btn:hover, #restart-quiz-btn:hover {
+            transform: scale(1.05);
+            background: rgba(255, 255, 255, 0.6);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        #reset-progress-btn:hover {
+             color: var(--text-primary);
+             text-decoration: underline;
+        }
+        
+        #quiz-results { text-align: center; }
+        
+        #quiz-results h3 {
+             font-size: 2rem;
+             font-weight: 700;
+             margin-bottom: 1.5rem;
+        }
+
+        #quiz-percentage {
+            font-size: 3.5rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            margin-bottom: 2rem;
+            width: 150px;
+            height: 150px;
+            background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: auto;
+            margin-right: auto;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .results-stats {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            margin-bottom: 2.5rem;
+            font-size: 1.1rem;
+        }
+        
+        .stat-correct, .stat-incorrect {
+            font-weight: 600;
+            color: var(--text-primary);
+            padding: 0.5rem 1.25rem;
+            border-radius: 9999px;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .stat-correct { background-color: rgba(34, 197, 94, 0.25); }
+        .stat-incorrect { background-color: rgba(239, 68, 68, 0.25); }
+        
+        #missed-topics-list {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 0.75rem;
+            list-style: none;
+            padding: 0;
+            margin-top: 1rem;
+        }
+
+        .missed-topic-bubble {
+            background-color: #f1f5f9;
+            color: var(--text-secondary);
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+
+        .missed-topic-bubble:hover {
+            background-color: #e2e8f0;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+
+        .missed-topic-bubble.visited-topic {
+            border-color: #22c55e;
+            background-color: #f0fdf4;
+            color: #166534;
+        }
+
+    </style>
+</head>
+<body>
+    <!-- RESTAURADO: Fundo Animado com as 3 bolhas -->
+    <div class="background-container">
+        <div class="light-bubble b1"></div> <!-- Verde -->
+        <div class="light-bubble b2"></div> <!-- Vermelho -->
+        <div class="light-bubble b3"></div> <!-- Laranja/Amarelo -->
+    </div>
+
+    <!-- Seção Hero -->
+    <section id="hero" class="section-container">
+        <div class="section-header-card">
+            <h1>HDL, LDL e VLDL</h1>
+            <p class="mt-4">Um mapa mental interativo sobre as principais lipoproteínas, suas funções e seu impacto na saúde cardiovascular.</p>
+        </div>
+    </section>
+    
+    <!-- NOVO: Layout do Mapa Mental -->
+    <section id="mapa-mental" class="section-container pt-12">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-7xl">
+            
+            <!-- Coluna HDL -->
+            <div id="hdl-col" class="flex flex-col gap-6">
+                <div class="section-header-card mb-0">
+                    <h2 class="section-title text-3xl" style="color: var(--hdl-color);">HDL: O "Bom"</h2>
+                    <p class="section-subtitle text-base">Lipoproteína de Alta Densidade</p>
+                </div>
+                <div class="topics-grid grid-cols-1">
+                    <div class="topic-card" id="topic-hdl-definicao">
+                        <div class="summary">O que é HDL?</div>
+                        <div class="topic-content-wrapper">
+                            <div class="topic-content">
+                                <ul>
+                                    <li><strong>Sigla:</strong> <span class="term" data-description="Lipoproteína de Alta Densidade. É a mais densa por ter a maior proporção de proteína em relação à gordura.">High-Density Lipoprotein</span></li>
+                                    <li><strong>Composição:</strong> É a mais densa (mais proteína, menos gordura).</li>
+                                    <li><strong>Apelido:</strong> Conhecido como "bom colesterol".</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="topic-card" id="topic-hdl-funcao">
+                        <div class="summary">Função Principal: Transporte Reverso</div>
+                        <div class="topic-content-wrapper">
+                            <div class="topic-content">
+                                <ul>
+                                    <li>Função: <span class="term" data-description="Processo de coletar colesterol dos tecidos (ex: paredes das artérias) e levá-lo de volta ao fígado para ser eliminado."><strong>Transporte reverso do colesterol</strong></span>.</li>
+                                    <li>Atua como um "gari", limpando o excesso de colesterol das artérias.</li>
+                                    <li>Leva o colesterol de volta ao <span class="term" data-description="O principal órgão metabólico do corpo. Ele processa gorduras, colesterol e toxinas, e é para onde o HDL leva o colesterol para ser eliminado.">fígado</span> para ser metabolizado ou excretado.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                     <div class="topic-card" id="topic-hdl-apoproteina">
+                        <div class="summary">Apoproteína Chave: Apo A-I</div>
+                        <div class="topic-content-wrapper">
+                            <div class="topic-content">
+                                <ul>
+                                    <li>Principal proteína: <span class="term" data-description="A principal proteína estrutural do HDL, essencial para ativar enzimas (como a LCAT) que permitem ao HDL 'sugar' o colesterol dos tecidos."><strong>Apo A-I</strong></span>.</li>
+                                    <li>A Apo A-I ativa <span class="term" data-description="Proteínas que aceleram reações químicas. No caso do HDL, a enzima LCAT (ativada pela Apo A-I) é crucial para 'capturar' o colesterol dos tecidos.">enzimas</span> que permitem ao HDL coletar o colesterol.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="topic-card" id="topic-hdl-saude">
+                        <div class="summary">Impacto na Saúde</div>
+                        <div class="topic-content-wrapper">
+                            <div class="topic-content">
+                                <ul>
+                                    <li>Níveis elevados de HDL são <strong>protetores</strong> contra doenças cardíacas.</li>
+                                    <li>Ajuda a prevenir a <span class="term" data-description="Formação de placas de gordura e colesterol nas paredes das artérias, endurecendo-as e estreitando-as.">aterosclerose</span>.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Coluna LDL -->
+            <div id="ldl-col" class="flex flex-col gap-6">
+                <div class="section-header-card mb-0">
+                    <h2 class="section-title text-3xl" style="color: var(--ldl-color);">LDL: O "Mau"</h2>
+                    <p class="section-subtitle text-base">Lipoproteína de Baixa Densidade</p>
+                </div>
+                <div class="topics-grid grid-cols-1">
+                    <div class="topic-card" id="topic-ldl-definicao">
+                        <div class="summary">O que é LDL?</div>
+                        <div class="topic-content-wrapper">
+                            <div class="topic-content">
+                                <ul>
+                                    <li><strong>Sigla:</strong> <span class="term" data-description="Lipoproteína de Baixa Densidade. É a principal partícula transportadora de colesterol no sangue.">Low-Density Lipoprotein</span></li>
+                                    <li><strong>Origem:</strong> É o produto final do metabolismo do VLDL.</li>
+                                    <li><strong>Composição:</strong> Muito rica em <span class="term" data-description="Um tipo de gordura essencial para membranas celulares e hormônios, mas prejudicial em excesso no lugar errado."><strong>colesterol</strong></span>.</li>
+                                    <li><strong>Apelido:</strong> Conhecido como "mau colesterol".</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="topic-card" id="topic-ldl-funcao">
+                        <div class="summary">Função Principal: Entrega de Colesterol</div>
+                        <div class="topic-content-wrapper">
+                            <div class="topic-content">
+                                <ul>
+                                    <li>Função: <strong>Entregar colesterol</strong> do fígado para os <span class="term" data-description="Qualquer tecido do corpo que está fora do sistema nervoso central (cérebro e medula) e do fígado, como músculos, pele e órgãos.">tecidos periféricos</span>.</li>
+                                    <li>As células usam esse colesterol para membranas, <span class="term" data-description="Mensageiros químicos do corpo. O colesterol é a matéria-prima para hormônios esteroides, como testosterona e estrogênio.">hormônios</span>, etc.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="topic-card" id="topic-ldl-apoproteina">
+                        <div class="summary">Apoproteína Chave: Apo B-100</div>
+                        <div class="topic-content-wrapper">
+                            <div class="topic-content">
+                                <ul>
+                                    <li>Principal proteína: <span class="term" data-description="A única proteína do LDL. Funciona como um 'endereço' ou 'chave' que permite ao LDL se ligar aos receptores nas células para entregar o colesterol."><strong>Apo B-100</strong></span>.</li>
+                                    <li>A Apo B-100 liga-se aos <span class="term" data-description="'Portas' na superfície das células que reconhecem a Apo B-100. Quando o LDL se liga a elas, a célula 'puxa' o LDL para dentro para usar seu colesterol.">receptores de LDL</span> nas células.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="topic-card" id="topic-ldl-saude">
+                        <div class="summary">Impacto na Saúde: Aterogênico</div>
+                        <div class="topic-content-wrapper">
+                            <div class="topic-content">
+                                <ul>
+                                    <li>O excesso de LDL pode se acumular nas paredes das artérias.</li>
+                                    <li>Isso causa <span class="term" data-description="A resposta natural do sistema imunológico a danos. Quando o LDL se infiltra na artéria, o corpo o vê como um invasor, causando uma inflamação crônica que forma a placa.">inflamação</span> e a formação da <span class="term" data-description="Acúmulo de gordura (LDL), células inflamatórias e cálcio dentro da parede da artéria, o que pode bloqueá-la."><strong>placa de ateroma</strong></span>.</li>
+                                    <li>Níveis elevados de LDL aumentam o risco de <span class="term" data-description="Eventos graves causados pelo bloqueio do fluxo sanguíneo. Infarto (ataque cardíaco) ocorre nas artérias do coração; AVC (derrame) ocorre nas artérias do cérebro. Ambos são causados pelo rompimento da placa de ateroma.">infarto e AVC</span>.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Coluna VLDL -->
+            <div id="vldl-col" class="flex flex-col gap-6">
+                <div class="section-header-card mb-0">
+                    <h2 class="section-title text-3xl" style="color: var(--vldl-color);">VLDL: O Precursor</h2>
+                    <p class="section-subtitle text-base">Lipoproteína de Densidade Muito Baixa</p>
+                </div>
+                <div class="topics-grid grid-cols-1">
+                    <div class="topic-card" id="topic-vldl-definicao">
+                        <div class="summary">O que é VLDL?</div>
+                        <div class="topic-content-wrapper">
+                            <div class="topic-content">
+                                <ul>
+                                    <li><strong>Sigla:</strong> <span class="term" data-description="Lipoproteína de Densidade Muito Baixa. É produzida no fígado.">Very Low-Density Lipoprotein</span></li>
+                                    <li><strong>Origem:</strong> Produzida e secretada pelo <span class="term" data-description="O principal órgão metabólico do corpo, responsável por processar gorduras e carboidratos. É onde o VLDL é 'montado' e enviado para a circulação.">fígado</span>.</li>
+                                    <li><strong>Composição:</strong> Muito rica em <span class="term" data-description="O principal tipo de gordura usado para armazenamento de energia no corpo. O VLDL os transporta do fígado para os tecidos."><strong>triglicerídeos</strong></span>.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="topic-card" id="topic-vldl-funcao">
+                        <div class="summary">Função Principal: Entrega de Triglicerídeos</div>
+                        <div class="topic-content-wrapper">
+                            <div class="topic-content">
+                                <ul>
+                                    <li>Função: Transportar triglicerídeos (gordura) do fígado para os tecidos (músculos, <span class="term" data-description="O tecido de gordura do corpo, especializado em armazenar energia na forma de triglicerídeos.">tecido adiposo</span>).</li>
+                                    <li>Fornece energia ou material para armazenamento de gordura.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="topic-card" id="topic-vldl-apoproteina">
+                        <div class="summary">Apoproteína Chave: Apo B-100</div>
+                        <div class="topic-content-wrapper">
+                            <div class="topic-content">
+                                 <ul>
+                                    <li>Principal proteína estrutural: <span class="term" data-description="Assim como o LDL, o VLDL é 'construído' em torno da Apo B-100, que o mantém unido."><strong>Apo B-100</strong></span>.</li>
+                                    <li>Também carrega outras apos (C e E) que pega na circulação.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                     <div class="topic-card" id="topic-vldl-relacao-ldl">
+                        <div class="summary">Relação com o LDL</div>
+                        <div class="topic-content-wrapper">
+                            <div class="topic-content">
+                                <ul>
+                                    <li>À medida que o VLDL entrega seus triglicerídeos, ele encolhe.</li>
+                                    <li>Ele se torna <span class="term" data-description="Sigla para 'Intermediate-Density Lipoprotein' (Lipoproteína de Densidade Intermediária). É o estágio de transição entre o VLDL (que perdeu triglicerídeos) e o LDL (que se tornou rico em colesterol).">IDL (densidade intermediária)</span> e, finalmente, é convertido em <span class="term" data-description="O LDL nada mais é do que uma partícula de VLDL que já entregou a maior parte de seus triglicerídeos e agora está rica em colesterol."><strong>LDL</strong></span>.</li>
+                                    <li>Portanto, o VLDL é o precursor direto do LDL.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+    <!-- FIM: Layout do Mapa Mental -->
+
+
+    <!-- Seção do Quiz -->
+    <section id="quiz-section" class="section-container">
+        <div class="section-header-card">
+            <h2 class="section-title">Teste seu Conhecimento</h2>
+            <p class="section-subtitle">Vamos ver o que você aprendeu! Responda às perguntas a seguir para testar sua compreensão sobre HDL, LDL e VLDL.</p>
+        </div>
+
+        <div id="quiz-area" class="w-full max-w-3xl flex flex-col items-center">
+            
+            <div id="progress-bar-container">
+                <div id="progress-bar-fill" style="width: 0%;">0%</div>
+            </div>
+            <div id="progress-label">Progresso: 0 de 15 questões dominadas</div>
+
+            <div id="quiz-container" class="quiz-container hidden">
+                <div id="timer-display">30</div>
+                <div id="question-counter-display"></div>
+                <h3 id="quiz-question"></h3>
+                <ul id="quiz-options"></ul>
+            </div>
+
+            <div id="quiz-results" class="quiz-container hidden">
+                <h3>Quiz Finalizado!</h3>
+                <div id="quiz-percentage">100%</div>
+                <div class="results-stats">
+                    <span id="stat-correct-count" class="stat-correct"></span>
+                    <span id="stat-incorrect-count" class="stat-incorrect"></span>
+                </div>
+                <h4 class="text-lg font-semibold mt-6 mb-2 text-slate-700">Tópicos para revisar:</h4>
+                <ul id="missed-topics-list"></ul>
+                 <button id="restart-quiz-btn">Novo Quiz</button>
+            </div>
+
+            <div id="start-area" class="flex flex-col items-center">
+                 <button id="quiz-start-btn">Começar Quiz</button>
+                 <button id="reset-progress-btn">Zerar Progresso</button>
+            </div>
+
+        </div>
+    </section>
+
+    <footer class="footer-signature">
+        <p>Estética adaptada do design original.</p>
+    </footer>
+
+    <!-- NOVO: HTML do Modal -->
+    <div id="modal-overlay" class="fixed inset-0">
+        <div id="modal-content" class="relative">
+             <button id="modal-close-btn" class="absolute top-4 right-4 z-20">&times;</button>
+            <div id="modal-header" class="relative">
+                <h3 id="modal-title"></h3>
+            </div>
+            <!-- O container de imagem está aqui caso seja necessário no futuro -->
+            <div id="modal-image-container" class="hidden"> 
+            </div>
+            <p id="modal-description"></p>
+        </div>
+    </div>
+
+
+    <!-- Script do Quiz -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            /* REMOVIDO: Observer para mudança de fundo da seção
+            const bgObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    // CORREÇÃO: Mapeia o ID da coluna (ex: "hdl-col") para o ID do brilho (ex: "bg-hdl")
+                    const glowId = `bg-${entry.target.id.replace('-col', '')}`;
+                    const glowEl = document.getElementById(glowId);
+                    if (glowEl) {
+                        if (entry.isIntersecting) {
+                            glowEl.style.opacity = '0.25';
+                        } else {
+                            glowEl.style.opacity = '0';
+                        }
+                    }
+                });
+            }, { threshold: 0.4 }); 
+
+            document.querySelectorAll('#hdl-col, #ldl-col, #vldl-col').forEach(section => {
+                bgObserver.observe(section);
+            });
+            */
+
+            // Observer para animações de cartão
+            const cardObserver = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                    } else if (entry.boundingClientRect.top > 0) {
+                        entry.target.classList.remove('visible');
+                    }
+                });
+            }, {
+                threshold: 0.01
+            });
+            document.querySelectorAll('.topic-card, .section-header-card').forEach(card => {
+                cardObserver.observe(card);
+            });
+            
+            // == NOVO: Lógica do Modal ==
+            const modalOverlay = document.getElementById('modal-overlay');
+            const modalContent = document.getElementById('modal-content');
+            const modalHeader = document.getElementById('modal-header');
+            const modalTitle = document.getElementById('modal-title');
+            const modalDescription = document.getElementById('modal-description');
+            const modalCloseBtn = document.getElementById('modal-close-btn');
+            const modalImageContainer = document.getElementById('modal-image-container'); // Mesmo sem usar, definimos
+
+            function openModal() {
+                modalOverlay.classList.add('visible');
+                document.body.style.overflow = 'hidden';
+            }
+
+            const closeModal = () => {
+                modalOverlay.classList.remove('visible');
+                setTimeout(() => {
+                    if (!modalOverlay.classList.contains('visible')) {
+                         document.body.style.overflow = '';
+                         modalImageContainer.innerHTML = ''; // Limpa se houver algo
+                    }
+                }, 400); 
+            };
+
+            // Event Listeners para Termos
+            document.querySelectorAll('.term').forEach(term => {
+                term.addEventListener('click', (event) => {
+                    event.preventDefault();
+                    const title = term.textContent;
+                    const description = term.getAttribute('data-description');
+                    const parentCol = term.closest('[id$="-col"]'); // Encontra o pai (hdl-col, ldl-col, vldl-col)
+                    let theme = 'hdl-col'; // Padrão
+                    if (parentCol && parentCol.id) {
+                       theme = parentCol.id;
+                    }
+                    
+                    modalHeader.classList.remove('hidden');
+                    modalImageContainer.classList.add('hidden'); // Esconde o container de imagem
+                    
+                    modalTitle.textContent = title;
+                    modalDescription.textContent = description;
+                    
+                    modalContent.className = 'relative'; // Limpa classes antigas
+                    modalHeader.className = '';
+                    modalContent.classList.add(`theme-${theme}`);
+                    modalHeader.classList.add(`theme-${theme}`);
+                    
+                    openModal();
+                });
+            });
+
+            modalCloseBtn.addEventListener('click', closeModal);
+            modalOverlay.addEventListener('click', (event) => {
+                if (event.target === modalOverlay) closeModal();
+            });
+            // == FIM: Lógica do Modal ==
+
+
+            // Lógica do Accordion
+            document.querySelectorAll('.topic-card .summary').forEach(summary => {
+                summary.addEventListener('click', (e) => {
+                    const card = e.currentTarget.parentElement;
+                    toggleAccordion(card);
+                });
+            });
+
+            function toggleAccordion(cardToToggle) {
+                const contentWrapper = cardToToggle.querySelector('.topic-content-wrapper');
+                const isOpen = cardToToggle.classList.contains('is-open');
+
+                const parentGrid = cardToToggle.closest('.topics-grid');
+                parentGrid.querySelectorAll('.topic-card.is-open').forEach(openCard => {
+                    if (openCard !== cardToToggle) {
+                        const otherContentWrapper = openCard.querySelector('.topic-content-wrapper');
+                        otherContentWrapper.style.maxHeight = '0px';
+                        openCard.classList.remove('is-open');
+                    }
+                });
+
+                if (isOpen) {
+                    contentWrapper.style.maxHeight = '0px';
+                    cardToToggle.classList.remove('is-open');
+                } else {
+                    const content = cardToToggle.querySelector('.topic-content');
+                    contentWrapper.style.maxHeight = content.scrollHeight + 'px';
+                    cardToToggle.classList.add('is-open');
+                }
+            }
+            
+            // ===================================
+            // == LÓGICA DO QUIZ (Adaptada)
+            // ===================================
+
+            const questionBank = [
+                // 15 Perguntas Fáceis
+                { id: 1, difficulty: 'Fácil', question: "Qual lipoproteína é comumente chamada de 'bom colesterol'?", topic: "O que é HDL?", options: ["LDL", "VLDL", "HDL", "IDL"], correctAnswer: 2 },
+                { id: 2, difficulty: 'Fácil', question: "Qual lipoproteína é comumente chamada de 'mau colesterol'?", topic: "O que é LDL?", options: ["HDL", "LDL", "VLDL", "Quilomícrons"], correctAnswer: 1 },
+                { id: 3, difficulty: 'Fácil', question: "Qual é a principal função do HDL?", topic: "Função Principal: Transporte Reverso", options: ["Entregar colesterol aos tecidos", "Remover o excesso de colesterol dos tecidos", "Transportar triglicerídeos", "Ser convertido em LDL"], correctAnswer: 1 },
+                { id: 4, difficulty: 'Fácil', question: "Qual é a principal função do LDL?", topic: "Função Principal: Entrega de Colesterol", options: ["Entregar colesterol aos tecidos", "Remover colesterol das artérias", "Transportar glicose", "Produzir hormônios"], correctAnswer: 0 },
+                { id: 5, difficulty: 'Fácil', question: "Qual lipoproteína transporta principalmente triglicerídeos do fígado para o corpo?", topic: "Função Principal: Entrega de Triglicerídeos", options: ["HDL", "LDL", "VLDL", "Apo A-I"], correctAnswer: 2 },
+                { id: 6, difficulty: 'Fácil', question: "Qual lipoproteína tem a MAIOR densidade?", topic: "O que é HDL?", options: ["HDL", "LDL", "VLDL", "IDL"], correctAnswer: 0 },
+                { id: 7, difficulty: 'Fácil', question: "Qual lipoproteína tem a densidade 'MUITO BAIXA' (Very Low-Density)?", topic: "O que é VLDL?", options: ["HDL", "LDL", "VLDL", "Nenhuma das opções"], correctAnswer: 2 },
+                { id: 8, difficulty: 'Fácil', question: "Níveis elevados de qual lipoproteína são considerados PROTETORES para o coração?", topic: "Impacto na Saúde", options: ["LDL", "VLDL", "Triglicerídeos", "HDL"], correctAnswer: 3 },
+                { id: 9, difficulty: 'Fácil', question: "O acúmulo de qual lipoproteína está mais associado à formação de placas nas artérias (aterosclerose)?", topic: "Impacto na Saúde: Aterogênico", options: ["HDL", "LDL", "VLDL", "Apo A-I"], correctAnswer: 1 },
+                { id: 10, difficulty: 'Fácil', question: "Qual lipoproteína é a precursora direta do LDL?", topic: "Relação com o LDL", options: ["HDL", "VLDL", "Apo B-100", "Colesterol"], correctAnswer: 1 },
+                { id: 11, difficulty: 'Fácil', question: "Qual é a principal apoproteína encontrada no HDL?", topic: "Apoproteína Chave: Apo A-I", options: ["Apo A-I", "Apo B-100", "Apo C-II", "Apo E"], correctAnswer: 0 },
+                { id: 12, difficulty: 'Fácil', question: "Qual é a principal apoproteína encontrada no LDL e VLDL?", topic: "Apoproteína Chave: Apo B-100", options: ["Apo A-I", "Apo B-100", "Apo A-II", "Apo D"], correctAnswer: 1 },
+                { id: 13, difficulty: 'Fácil', question: "O 'Transporte Reverso' (função do HDL) significa levar o colesterol de onde para onde?", topic: "Função Principal: Transporte Reverso", options: ["Do fígado para os tecidos", "Dos tecidos para o fígado", "Do intestino para o fígado", "Do cérebro para o coração"], correctAnswer: 1 },
+                { id: 14, difficulty: 'Fácil', question: "O que significa a sigla HDL?", topic: "O que é HDL?", options: ["Heavy-Density Lipoprotein", "High-Density Lipoprotein", "Low-Density Lipoprotein", "Human-Derived Lipoprotein"], correctAnswer: 1 },
+                { id: 15, difficulty: 'Fácil', question: "O que significa a sigla LDL?", topic: "O que é LDL?", options: ["Low-Density Lipoprotein", "Light-Density Lipoprotein", "High-Density Lipoprotein", "Large-Domain Lipoprotein"], correctAnswer: 0 }
+            ];
+
+            const startBtn = document.getElementById('quiz-start-btn');
+            const restartBtn = document.getElementById('restart-quiz-btn');
+            const resetBtn = document.getElementById('reset-progress-btn'); 
+            const startArea = document.getElementById('start-area');
+            const quizContainer = document.getElementById('quiz-container');
+            const resultsContainer = document.getElementById('quiz-results');
+            const questionEl = document.getElementById('quiz-question');
+            const optionsEl = document.getElementById('quiz-options');
+            const questionCounterDisplay = document.getElementById('question-counter-display');
+            const progressBarFill = document.getElementById('progress-bar-fill');
+            const progressLabel = document.getElementById('progress-label');
+            const timerDisplay = document.getElementById('timer-display');
+            
+            let currentQuestionIndex = 0;
+            let score = 0;
+            let missedTopics = [];
+            let activeQuiz = [];
+            let correctlyAnsweredIds = [];
+
+            let questionTimer;
+            let countdownInterval;
+            const TIMER_DURATION = 30; 
+
+            function loadProgress() {
+                const savedProgress = localStorage.getItem('lipoquiz_correctlyAnsweredIds');
+                correctlyAnsweredIds = savedProgress ? JSON.parse(savedProgress) : [];
+                updateProgressBar();
+                checkCompletion();
+            }
+
+            function saveProgress() {
+                localStorage.setItem('lipoquiz_correctlyAnsweredIds', JSON.stringify(correctlyAnsweredIds));
+            }
+
+            function updateProgressBar() {
+                const totalQuestions = questionBank.length;
+                const answeredCount = correctlyAnsweredIds.length;
+                const percentage = totalQuestions > 0 ? Math.round((answeredCount / totalQuestions) * 100) : 0;
+                
+                progressBarFill.style.width = `${percentage}%`;
+                progressBarFill.textContent = `${percentage}%`;
+                progressLabel.textContent = `Progresso: ${answeredCount} de ${totalQuestions} questões dominadas`;
+            }
+
+            function checkCompletion() {
+                const availableQuestions = questionBank.filter(q => !correctlyAnsweredIds.includes(q.id));
+                if (availableQuestions.length === 0) {
+                    startBtn.disabled = true;
+                    startBtn.textContent = "Parabéns, você dominou tudo!";
+                } else {
+                    startBtn.disabled = false;
+                    startBtn.textContent = "Começar Quiz";
+                }
+            }
+            
+            function startQuiz() {
+                const availableQuestions = questionBank.filter(q => !correctlyAnsweredIds.includes(q.id));
+                
+                if (availableQuestions.length === 0) {
+                     checkCompletion();
+                     return;
+                }
+                
+                // Pega todas as perguntas disponíveis se houver menos de 15, ou embaralha e pega 15
+                let questionsToQuiz = [...availableQuestions].sort(() => 0.5 - Math.random());
+                if (questionsToQuiz.length > 15) {
+                    questionsToQuiz = questionsToQuiz.slice(0, 15);
+                }
+                
+                // Se o banco total tiver só 15, usa todas
+                if(questionBank.length === 15) {
+                     activeQuiz = [...questionBank].sort(() => 0.5 - Math.random());
+                } else {
+                    // Lógica para pegar as X primeiras disponíveis, ou embaralhar o banco todo
+                     activeQuiz = [...availableQuestions].sort(() => 0.5 - Math.random()).slice(0, 15);
+                }
+
+
+                currentQuestionIndex = 0;
+                score = 0;
+                missedTopics = [];
+                
+                startArea.classList.add('hidden');
+                resultsContainer.classList.add('hidden');
+                quizContainer.classList.remove('hidden');
+                showQuestion();
+            }
+
+            function startTimer() {
+                clearTimeout(questionTimer);
+                clearInterval(countdownInterval);
+
+                let timeLeft = TIMER_DURATION;
+                timerDisplay.textContent = timeLeft;
+                timerDisplay.className = 'absolute top-10 left-10 w-11 h-11 rounded-full bg-white/40 border-2 border-slate-600 flex items-center justify-center text-base font-bold text-slate-800 transition-all duration-300 ease-in-out';
+                
+                countdownInterval = setInterval(() => {
+                    timeLeft--;
+                    timerDisplay.textContent = timeLeft;
+                    if (timeLeft <= 10 && timeLeft > 5) {
+                        timerDisplay.classList.add('warning');
+                    } else if (timeLeft <= 5) {
+                        timerDisplay.classList.add('danger');
+                    }
+                }, 1000);
+
+                questionTimer = setTimeout(() => {
+                    clearInterval(countdownInterval);
+                    handleTimeUp();
+                }, TIMER_DURATION * 1000);
+            }
+
+            function handleTimeUp() {
+                 selectAnswer(null);
+            }
+
+            function showQuestion() {
+                resetState();
+                if (currentQuestionIndex >= activeQuiz.length) {
+                    showResults();
+                    return;
+                }
+                const questionData = activeQuiz[currentQuestionIndex];
+
+                questionCounterDisplay.textContent = `${currentQuestionIndex + 1}/${activeQuiz.length}`;
+                // Como todas são fáceis, mantemos o contador verde
+                questionCounterDisplay.classList.add('facil-bg');
+
+                questionEl.textContent = questionData.question;
+                
+                questionData.options.forEach((option, index) => {
+                    const li = document.createElement('li');
+                    li.textContent = option;
+                    li.classList.add('quiz-option');
+                    li.dataset.index = index;
+                    li.addEventListener('click', selectAnswer);
+                    optionsEl.appendChild(li);
+                });
+                startTimer();
+            }
+
+            function resetState() {
+                clearTimeout(questionTimer);
+                clearInterval(countdownInterval);
+                while(optionsEl.firstChild) {
+                    optionsEl.removeChild(optionsEl.firstChild);
+                }
+                /* REMOVIDO: document.body.classList.remove('correct-bg', 'incorrect-bg'); */
+            }
+            
+            function selectAnswer(e) {
+                clearTimeout(questionTimer);
+                clearInterval(countdownInterval);
+
+                const selectedOption = e ? e.target : null;
+                Array.from(optionsEl.children).forEach(option => option.removeEventListener('click', selectAnswer));
+
+                const currentQuestion = activeQuiz[currentQuestionIndex];
+                const correctIndex = currentQuestion.correctAnswer;
+                let isCorrect = false;
+
+                if(selectedOption && parseInt(selectedOption.dataset.index) === correctIndex) {
+                    isCorrect = true;
+                }
+                
+                Array.from(optionsEl.children).forEach((optionNode, index) => {
+                    optionNode.classList.add('disabled');
+                    if (index === correctIndex) {
+                        optionNode.classList.add('correct-answer');
+                    }
+                });
+
+                if (isCorrect) {
+                    score++;
+                    if(selectedOption) selectedOption.classList.add('correct-answer');
+                    /* REMOVIDO: document.body.classList.add('correct-bg'); */
+                    if (!correctlyAnsweredIds.includes(currentQuestion.id)) {
+                        correctlyAnsweredIds.push(currentQuestion.id);
+                        saveProgress();
+                        updateProgressBar();
+                    }
+                } else {
+                    if (selectedOption) {
+                        selectedOption.classList.add('incorrect-answer');
+                    }
+                    missedTopics.push(currentQuestion.topic);
+                    /* REMOVIDO: document.body.classList.add('incorrect-bg'); */
+                }
+
+                setTimeout(() => {
+                    currentQuestionIndex++;
+                    if(currentQuestionIndex < activeQuiz.length) {
+                        showQuestion();
+                    } else {
+                        showResults();
+                    }
+                }, 2500); 
+            }
+            
+            function showResults() {
+                resetState();
+                quizContainer.classList.add('hidden');
+                resultsContainer.classList.remove('hidden');
+
+                const percentage = activeQuiz.length > 0 ? Math.round((score / activeQuiz.length) * 100) : 0;
+                document.getElementById('quiz-percentage').textContent = `${percentage}%`;
+                document.getElementById('stat-correct-count').textContent = `✔️ ${score} Acertos`;
+                document.getElementById('stat-incorrect-count').textContent = `❌ ${activeQuiz.length - score} Erros`;
+                
+                const missedListEl = document.getElementById('missed-topics-list');
+                missedListEl.innerHTML = '';
+                
+                if (missedTopics.some(t => t)) {
+                     const uniqueMissedTopics = [...new Set(missedTopics.filter(t => t))];
+                     uniqueMissedTopics.forEach(topicName => {
+                         const targetCard = Array.from(document.querySelectorAll('.topic-card .summary'))
+                             .find(s => s.textContent.trim() === topicName)?.parentElement;
+                         if (targetCard) {
+                             const bubble = document.createElement('li');
+
+                             bubble.textContent = topicName;
+                             bubble.classList.add('missed-topic-bubble');
+                             bubble.addEventListener('click', (e) => {
+                                 e.currentTarget.classList.add('visited-topic');
+                                 targetCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                 if (!targetCard.classList.contains('is-open')) {
+                                     toggleAccordion(targetCard);
+                                 }
+                             });
+                             missedListEl.appendChild(bubble);
+                         }
+                     });
+                } else {
+                     const congrats = document.createElement('li');
+                     if (activeQuiz.length > 0 && score === activeQuiz.length) {
+                         congrats.textContent = "Parabéns, você acertou tudo!";
+                         congrats.classList.add('text-green-600', 'font-semibold');
+                     } else {
+                         congrats.textContent = "Você não errou nenhuma questão com tópico associado. Bom trabalho!";
+                     }
+                     missedListEl.appendChild(congrats);
+                }
+                 checkCompletion();
+            }
+            
+            function resetProgress() {
+                // Removido o 'confirm' pois não funciona bem em todos os ambientes
+                // Substituído por uma simples remoção
+                try {
+                    localStorage.removeItem('lipoquiz_correctlyAnsweredIds');
+                    correctlyAnsweredIds = [];
+                    updateProgressBar();
+                    checkCompletion(); // Re-habilita o botão de iniciar
+                    // Removido o 'alert' também
+                    console.log("Progresso zerado.");
+                } catch (e) {
+                    console.error("Não foi possível zerar o progresso.", e);
+                }
+            }
+
+            startBtn.addEventListener('click', startQuiz);
+            restartBtn.addEventListener('click', () => {
+                resultsContainer.classList.add('hidden');
+                startArea.classList.remove('hidden');
+                checkCompletion();
+            });
+            resetBtn.addEventListener('click', resetProgress);
+
+            loadProgress();
+        });
+    </script>
+</body>
+</html>
+
